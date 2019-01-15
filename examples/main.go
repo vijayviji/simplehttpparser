@@ -1,7 +1,7 @@
-package SimpleHttpParser
+package main
 
 import (
-	"SimpleHttpParser"
+	"git.ouroath.com/vsomasundaram/simplehttpparser"
 	"fmt"
 	"net"
 	"os"

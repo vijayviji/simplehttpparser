@@ -1,4 +1,4 @@
-package SimpleHttpParser
+package simplehttpparser
 
 import (
 	"bufio"
