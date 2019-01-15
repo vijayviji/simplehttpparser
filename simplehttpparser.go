@@ -17,14 +17,16 @@ type extraHeader struct {
 	contentLength    []byte // written if not nil
 }
 
-type RequestHandler func (request *Request) *Response
+// RequestHandler - Fn which handles all requests
+type RequestHandler func(request *Request) *Response
 
+// Session - A single session (or HTTP connection) where multiple requests can come in.
 type Session struct {
 	conn net.Conn
 
 	tpReader *textproto.Reader
-	bufR *bufio.Reader
-	bufW *bufio.Writer
+	bufR     *bufio.Reader
+	bufW     *bufio.Writer
 
 	// ReadTimeout is the maximum duration for reading the entire
 	// request, including the body.
@@ -56,8 +58,9 @@ type Session struct {
 	closeConnection bool
 }
 
+// NewSession - Create a new session
 func NewSession(conn net.Conn, readTimeout time.Duration, writeTimeout time.Duration) *Session {
-	session := &Session {
+	session := &Session{
 		conn: conn,
 	}
 
@@ -72,15 +75,17 @@ func NewSession(conn net.Conn, readTimeout time.Duration, writeTimeout time.Dura
 	return session
 }
 
+// Read - Read from the connection
 func (session *Session) Read(p []byte) (n int, err error) {
 	n, err = session.conn.Read(p)
 
 	return n, err
 }
 
+// Write - Write to the connection
 func (session *Session) Write(p []byte) (n int, err error) {
 	n, err = session.conn.Write(p)
-	
+
 	return n, err
 }
 
@@ -88,6 +93,7 @@ func (session *Session) close() error {
 	return session.conn.Close()
 }
 
+// Serve - Given a session, it reads all requests in that and calls reqHandler to get a response and writes it.
 func (session *Session) Serve(reqHandler RequestHandler) {
 	for {
 		req, err := session.ReadRequest()
@@ -138,6 +144,7 @@ func (session *Session) writeExtraHeader(header *extraHeader) {
 	}
 }
 
+// WriteResponse - Write a response to the connection/session
 func (session *Session) WriteResponse(resp *Response) error {
 	var (
 		err error
@@ -174,6 +181,7 @@ func (session *Session) readHeaderTimeout() time.Duration {
 	return session.ReadTimeout
 }
 
+// ReadRequest - Read a request from the connection/session
 func (session *Session) ReadRequest() (*Request, error) {
 	var s string
 
@@ -209,30 +217,30 @@ func (session *Session) ReadRequest() (*Request, error) {
 
 	// TODO: Read Body of the request
 
-	return  request, nil
+	return request, nil
 }
 
-
+// Request - A request object
 type Request struct {
 	RequestURI string
-	Proto string
+	Proto      string
 	ProtoMajor int
 	ProtoMinor int
 
 	Method string
 	Header Header
-	Form url.Values
+	Form   url.Values
 }
 
 func newRequest() *Request {
 	return &Request{}
 }
 
-
+// Response - A response object
 type Response struct {
 	req *Request
 
-	Proto string
+	Proto      string
 	ProtoMajor int
 	ProtoMinor int
 
@@ -243,36 +251,39 @@ type Response struct {
 	Body          []byte
 }
 
+// NewResponse - Create a new response object
 func NewResponse(req *Request) *Response {
 	return &Response{
 		req: req,
 
-		ProtoMajor:req.ProtoMajor,
-		ProtoMinor:req.ProtoMinor,
-		Proto:req.Proto,
+		ProtoMajor: req.ProtoMajor,
+		ProtoMinor: req.ProtoMinor,
+		Proto:      req.Proto,
 	}
 }
 
 func newExtraHeader(contentType string, req *Request) *extraHeader {
-	return & extraHeader{
+	return &extraHeader{
 		contentType: contentType,
-		date: []byte(time.Now().Format(TimeFormat)),
-		connection:req.Header.get("connection"),
+		date:        []byte(time.Now().Format(timeFormat)),
+		connection:  req.Header.get("connection"),
 	}
 }
 
+// SetSuccess - Make the response to fill up with default values for a succcess response.
 func (resp *Response) SetSuccess(contentType string, body []byte) {
 	resp.StatusCode = 200
 	resp.Body = body
 	resp.extraHeader = newExtraHeader(contentType, resp.req)
 }
 
+// SetError - Make the response to fill up with default values for a error response.
 func (resp *Response) SetError(statusCode int) {
 	resp.StatusCode = statusCode
 	resp.extraHeader = newExtraHeader("text/html", resp.req)
 }
 
-
+// Header - Represents the headers in http request
 type Header map[string][]string
 
 // get is like Get, but key must already be in CanonicalHeaderKey form.

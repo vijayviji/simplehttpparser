@@ -13,11 +13,11 @@ import (
 )
 
 var (
-	crlf  = []byte("\r\n")
+	crlf       = []byte("\r\n")
 	colonSpace = []byte(": ")
 )
 
-const TimeFormat = "Mon, 02 Jan 2006 15:04:05 GMT"
+const timeFormat = "Mon, 02 Jan 2006 15:04:05 GMT"
 
 // Sorted the same as extraHeader.Write's loop.
 var extraHeaderKeys = [][]byte{
@@ -35,14 +35,15 @@ var (
 // unescaped) to tell the user why their request was bad. It should
 // be plain text without user info or other embedded errors.
 type badRequestError string
+
 func (e badRequestError) Error() string { return "Bad Request: " + string(e) }
 
 type badStringError struct {
 	what string
 	str  string
 }
-func (e *badStringError) Error() string { return fmt.Sprintf("%s %q", e.what, e.str) }
 
+func (e *badStringError) Error() string { return fmt.Sprintf("%s %q", e.what, e.str) }
 
 // http1ServerSupportsRequest reports whether Go's HTTP/1.x server
 // supports the given request.
@@ -163,7 +164,7 @@ func hasToken(v, token string) bool {
 	return false
 }
 
-func (r *Request) wantsHttp10KeepAlive() bool {
+func (r *Request) wantsHTTP10KeepAlive() bool {
 	if r.ProtoMajor != 1 || r.ProtoMinor != 0 {
 		return false
 	}
@@ -211,7 +212,6 @@ func writeStatusLine(bw *bufio.Writer, is11 bool, code int, scratch []byte) {
 		fmt.Fprintf(bw, "%03d status code %d\r\n", code, code)
 	}
 }
-
 
 var statusText = map[int]string{
 	http.StatusContinue:           "Continue",
