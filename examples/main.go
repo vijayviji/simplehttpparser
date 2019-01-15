@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.ouroath.com/vsomasundaram/simplehttpparser"
+	"github.com/vsomasundaram/simplehttpparser"
 	"fmt"
 	"net"
 	"os"
