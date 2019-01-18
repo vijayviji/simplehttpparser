@@ -1,22 +1,34 @@
 package main
 
 import (
-	"github.com/vijayviji/simplehttpparser"
 	"fmt"
+	"github.com/valyala/fasthttp"
+	"github.com/vijayviji/simplehttpparser"
 	"net"
 	"os"
 )
 
-func requestHandler(req *SimpleHttpParser.Request) *SimpleHttpParser.Response {
-	resp := SimpleHttpParser.NewResponse(req)
-	resp.SetSuccess("text/html", nil)
+func requestHandlerFastHTTP(ctx *fasthttp.RequestCtx) {
+	ctx.SuccessString("text/plain", "adsf")
+}
 
+func requestHandler(req *simplehttpparser.Request) *simplehttpparser.Response {
+	fmt.Println("Inside requestHandler")
+	resp := simplehttpparser.NewResponse(req)
+	resp.SetSuccess("text/html", nil)
+	fmt.Println("Returning resp")
 	return resp
 }
 
 func handleConnection(conn net.Conn) {
-	session := SimpleHttpParser.NewSession(conn, 0, 0)
+	session := simplehttpparser.NewSession(conn, 0, 0, 0)
+
+	fmt.Println("Trying to serve")
 	session.Serve(requestHandler)
+}
+
+func handleConnectionFastHTTP(conn net.Conn) {
+	fasthttp.ServeConn(conn, requestHandlerFastHTTP)
 }
 
 func main() {
@@ -36,7 +48,7 @@ func main() {
 			continue
 		}
 
-		go handleConnection(conn)
+		//go handleConnection(conn)
+		go handleConnectionFastHTTP(conn)
 	}
 }
-
